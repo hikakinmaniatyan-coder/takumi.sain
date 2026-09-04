@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>文化祭 お会計</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, "Noto Sans JP", sans-serif;
+    background: #f4f4f4;
+    color: #222;
+}
+
+header {
+    background: #222;
+    color: white;
+    padding: 18px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 25px;
+}
+
+main {
+    max-width: 1000px;
+    margin: auto;
+    padding: 18px;
+}
+
+.layout {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 18px;
+}
+
+.panel {
+    background: white;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 20px;
+}
+
+/* 商品 */
+
+.products {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.product {
+    min-height: 80px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #fafafa;
+    cursor: pointer;
+    padding: 12px;
+    text-align: left;
+    font-size: 16px;
+}
+
+.product:hover {
+    background: #eeeeee;
+}
+
+.product:active {
+    transform: scale(0.98);
+}
+
+.product-name {
+    display: block;
+    font-weight: bold;
+}
+
+.product-price {
+    display: block;
+    margin-top: 6px;
+    color: #666;
+}
+
+/* 注文 */
+
+.order-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.order-name {
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+.order-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quantity-button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 7px;
+    background: #e5e5e5;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.quantity {
+    min-width: 35px;
+    text-align: center;
+}
+
+.subtotal {
+    margin-left: auto;
+    font-weight: bold;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 20px 0;
+}
+
+.total {
+    display: flex;
+    justify-content: space-between;
+    border-top: 2px solid #222;
+    margin-top: 15px;
+    padding-top: 15px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.checkout {
+    width: 100%;
+    margin-top: 15px;
+    padding: 15px;
+    border: none;
+    border-radius: 9px;
+    background: #222;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.checkout:disabled {
+    background: #bbb;
+    cursor: not-allowed;
+}
+
+.reset {
+    width: 100%;
+    margin-top: 8px;
+    padding: 11px;
+    border: 1px solid #ccc;
+    border-radius: 9px;
+    background: white;
+    cursor: pointer;
+}
+
+/* 履歴 */
+
+.history {
+    margin-top: 18px;
+}
+
+.history-item {
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    padding: 12px;
+    margin-bottom: 9px;
+    background: #fafafa;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    margin-bottom: 7px;
+}
+
+.history-products {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #444;
+}
+
+.history-total {
+    margin-top: 7px;
+    text-align: right;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.clear-history {
+    margin-top: 5px;
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    .products {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>文化祭 お会計</h1>
+</header>
+
+<main>
+
+<div class="layout">
+
+    <!-- 商品一覧 -->
+    <section class="panel">
+
+        <h2>商品を選択</h2>
+
+        <div id="products" class="products"></div>
+
+    </section>
+
+
+    <!-- 現在の注文 -->
+    <section class="panel">
+
+        <h2>現在の注文</h2>
+
+        <div id="order"></div>
+
+        <div class="total">
+            <span>合計</span>
+            <span id="total">0円</span>
+        </div>
+
+        <button id="checkout" class="checkout" disabled>
+            会計する
+        </button>
+
+        <button id="reset" class="reset">
+            注文をリセット
+        </button>
+
+    </section>
+
+</div>
+
+
+<!-- 会計履歴 -->
+
+<section class="panel history">
+
+    <h2>会計履歴</h2>
+
+    <div id="history"></div>
+
+    <button id="clearHistory" class="clear-history">
+        履歴をすべて削除
+    </button>
+
+</section>
+
+</main>
+
+
+<script>
+
+/* =========================
+   商品データ
+========================= */
+
+const products = [
+
+    {
+        id: 1,
+        name: "うまい棒（コンポタ味）",
+        price: 30
+    },
+
+    {
+        id: 2,
+        name: "うまい棒（めんたい味）",
+        price: 30
+    },
+
+    {
+        id: 3,
+        name: "蒲焼さん太郎",
+        price: 30
+    },
+
+    {
+        id: 4,
+        name: "ヤングドーナツ",
+        price: 100
+    },
+
+    {
+        id: 5,
+        name: "ポテトフライ",
+        price: 90
+    },
+
+    {
+        id: 6,
+        name: "チョコ大福",
+        price: 30
+    },
+
+    {
+        id: 7,
+        name: "サワーペーパーキャンディ",
+        price: 60
+    },
+
+    {
+        id: 8,
+        name: "パチパチパニック",
+        price: 60
+    },
+
+    {
+        id: 9,
+        name: "ビッグカツ",
+        price: 70
+    },
+
+    {
+        id: 10,
+        name: "ミニコーラ",
+        price: 50
+    },
+
+    {
+        id: 11,
+        name: "ミニサワー",
+        price: 50
+    }
+
+];
+
+
+/* =========================
+   データ
+========================= */
+
+let order = {};
+
+let history =
+    JSON.parse(
+        localStorage.getItem("festivalHistory") || "[]"
+    );
+
+
+/* =========================
+   金額表示
+========================= */
+
+function yen(number) {
+
+    return number.toLocaleString("ja-JP") + "円";
+
+}
+
+
+/* =========================
+   商品ボタン表示
+========================= */
+
+function renderProducts() {
+
+    const container =
+        document.getElementById("products");
+
+    container.innerHTML = "";
+
+
+    products.forEach(product => {
+
+        const button =
+            document.createElement("button");
+
+        button.className = "product";
+
+
+        button.innerHTML = `
+
+            <span class="product-name">
+                ${product.name}
+            </span>
+
+            <span class="product-price">
+                ${yen(product.price)}
+            </span>
+
+        `;
+
+
+        button.onclick = function() {
+
+            addProduct(product.id);
+
+        };
+
+
+        container.appendChild(button);
+
+    });
+
+}
+
+
+/* =========================
+   商品追加
+========================= */
+
+function addProduct(id) {
+
+    if (order[id]) {
+
+        order[id]++;
+
+    } else {
+
+        order[id] = 1;
+
+    }
+
+
+    renderOrder();
+
+}
+
+
+/* =========================
+   個数変更
+========================= */
+
+function changeQuantity(id, amount) {
+
+    order[id] += amount;
+
+
+    if (order[id] <= 0) {
+
+        delete order[id];
+
+    }
+
+
+    renderOrder();
+
+}
+
+
+/* =========================
+   合計金額
+========================= */
+
+function getTotal() {
+
+    let total = 0;
+
+
+    Object.keys(order).forEach(id => {
+
+        const product =
+            products.find(
+                product => product.id == id
+            );
+
+
+        total +=
+            product.price * order[id];
+
+    });
+
+
+    return total;
+
+}
+
+
+/* =========================
+   注文表示
+========================= */
+
+function renderOrder() {
+
+    const container =
+        document.getElementById("order");
+
+    container.innerHTML = "";
+
+
+    const ids = Object.keys(order);
+
+
+    if (ids.length === 0) {
+
+        container.innerHTML =
+            '<div class="empty">商品が選択されていません</div>';
+
+    }
+
+
+    ids.forEach(id => {
+
+        const product =
+            products.find(
+                product => product.id == id
+            );
+
+
+        const quantity =
+            order[id];
+
+
+        const subtotal =
+            product.price * quantity;
+
+
+        const item =
+            document.createElement("div");
+
+
+        item.className = "order-item";
+
+
+        item.innerHTML = `
+
+            <div class="order-name">
+                ${product.name}
+            </div>
+
+            <div class="order-controls">
+
+                <button
+                    class="quantity-button"
+                    onclick="changeQuantity(${id}, -1)"
+                >
+                    −
+                </button>
+
+                <span class="quantity">
+                    ${quantity}
+                </span>
+
+                <button
+                    class="quantity-button"
+                    onclick="changeQuantity(${id}, 1)"
+                >
+                    ＋
+                </button>
+
+                <span class="subtotal">
+                    ${yen(product.price)} × ${quantity}
+                    = ${yen(subtotal)}
+                </span>
+
+            </div>
+
+        `;
+
+
+        container.appendChild(item);
+
+    });
+
+
+    document.getElementById("total").textContent =
+        yen(getTotal());
+
+
+    document.getElementById("checkout").disabled =
+        ids.length === 0;
+
+}
+
+
+/* =========================
+   会計
+========================= */
+
+function checkout() {
+
+    if (Object.keys(order).length === 0) {
+
+        return;
+
+    }
+
+
+    const items =
+        Object.keys(order).map(id => {
+
+            const product =
+                products.find(
+                    product => product.id == id
+                );
+
+
+            return {
+
+                name: product.name,
+
+                price: product.price,
+
+                quantity: order[id]
+
+            };
+
+        });
+
+
+    const record = {
+
+        number: getNextNumber(),
+
+        time: new Date().toLocaleString("ja-JP"),
+
+        items: items,
+
+        total: getTotal()
+
+    };
+
+
+    history.unshift(record);
+
+
+    localStorage.setItem(
+        "festivalHistory",
+        JSON.stringify(history)
+    );
+
+
+    order = {};
+
+
+    renderOrder();
+
+    renderHistory();
+
+}
+
+
+/* =========================
+   会計番号
+========================= */
+
+function getNextNumber() {
+
+    if (history.length === 0) {
+
+        return 1;
+
+    }
+
+
+    return Math.max(
+        ...history.map(item => item.number)
+    ) + 1;
+
+}
+
+
+/* =========================
+   注文リセット
+========================= */
+
+function resetOrder() {
+
+    order = {};
+
+    renderOrder();
+
+}
+
+
+/* =========================
+   履歴表示
+========================= */
+
+function renderHistory() {
+
+    const container =
+        document.getElementById("history");
+
+    container.innerHTML = "";
+
+
+    if (history.length === 0) {
+
+        container.innerHTML =
+            '<div class="empty">まだ会計履歴はありません</div>';
+
+        return;
+
+    }
+
+
+    history.forEach(record => {
+
+        const item =
+            document.createElement("div");
+
+
+        item.className =
+            "history-item";
+
+
+        const productsText =
+            record.items
+                .map(item => {
+
+                    const subtotal =
+                        item.price * item.quantity;
+
+
+                    return `
+                        ${item.name}
+                        × ${item.quantity}
+                        = ${yen(subtotal)}
+                    `;
+
+                })
+                .join("<br>");
+
+
+        item.innerHTML = `
+
+            <div class="history-header">
+
+                <span>
+                    #${String(record.number).padStart(3, "0")}
+                </span>
+
+                <span>
+                    ${record.time}
+                </span>
+
+            </div>
+
+
+            <div class="history-products">
+
+                ${productsText}
+
+            </div>
+
+
+            <div class="history-total">
+
+                合計 ${yen(record.total)}
+
+            </div>
+
+        `;
+
+
+        container.appendChild(item);
+
+    });
+
+}
+
+
+/* =========================
+   履歴削除
+========================= */
+
+function clearHistory() {
+
+    if (history.length === 0) {
+
+        return;
+
+    }
+
+
+    const result =
+        confirm(
+            "会計履歴をすべて削除しますか？"
+        );
+
+
+    if (!result) {
+
+        return;
+
+    }
+
+
+    history = [];
+
+
+    localStorage.removeItem(
+        "festivalHistory"
+    );
+
+
+    renderHistory();
+
+}
+
+
+/* =========================
+   ボタン設定
+========================= */
+
+document.getElementById("checkout")
+    .onclick = checkout;
+
+
+document.getElementById("reset")
+    .onclick = resetOrder;
+
+
+document.getElementById("clearHistory")
+    .onclick = clearHistory;
+
+
+/* =========================
+   初期表示
+========================= */
+
+renderProducts();
+
+renderOrder();
+
+renderHistory();
+
+</script>
+
+</body>
+</html>
